@@ -1,0 +1,23 @@
+{"wordlist":[
+        {"TYPE_1" : [
+                {
+                "url": "WORDLIST_URL", 
+                "fileName": "WORDLIST_FILENAME",
+                "folder": "WORDLIST/FOLDER/PATH",
+                "provider": "WORDLIST_PROVIDER",
+                "type":"STATIC/DYNAMIC"
+                }
+            ]
+        },
+        {"TYPE_2" : [
+                {
+                "url": "WORDLIST_URL", 
+                "fileName": "WORDLIST_FILENAME",
+                "folder": "WORDLIST/FOLDER/PATH",
+                "provider": "WORDLIST_PROVIDER",
+                "type":"STATIC/DYNAMIC"
+                }
+            ]
+        }
+    ]
+}

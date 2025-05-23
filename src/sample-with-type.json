@@ -1,0 +1,115 @@
+{
+    "wordlist":[
+
+        {"subdomain" : [
+                {
+                "url": "WORDLIST_URL", 
+                "fileName": "WORDLIST_FILENAME",
+                "folder": "WORDLIST/FOLDER/PATH",
+                "provider": "WORDLIST_PROVIDER",
+                "type":"STATIC/DYNAMIC"
+                }
+            ]
+        },
+        {"directory" : [
+                {
+                "url": "WORDLIST_URL", 
+                "fileName": "WORDLIST_FILENAME",
+                "folder": "WORDLIST/FOLDER/PATH",
+                "provider": "WORDLIST_PROVIDER",
+                "type":"STATIC/DYNAMIC"
+                }
+            ]
+        },
+        {"file" : [
+                {
+                "url": "WORDLIST_URL", 
+                "fileName": "WORDLIST_FILENAME",
+                "folder": "WORDLIST/FOLDER/PATH",
+                "provider": "WORDLIST_PROVIDER",
+                "type":"STATIC/DYNAMIC"
+                }
+            ]
+        },
+        {"api" : [
+                {
+                "url": "WORDLIST_URL", 
+                "fileName": "WORDLIST_FILENAME",
+                "folder": "WORDLIST/FOLDER/PATH",
+                "provider": "WORDLIST_PROVIDER",
+                "type":"STATIC/DYNAMIC"
+                }
+            ]
+        },
+        {"parameter" : [
+                {
+                "url": "WORDLIST_URL", 
+                "fileName": "WORDLIST_FILENAME",
+                "folder": "WORDLIST/FOLDER/PATH",
+                "provider": "WORDLIST_PROVIDER",
+                "type":"STATIC/DYNAMIC"
+                }
+            ]
+        },
+        {"header" : [
+                {
+                "url": "WORDLIST_URL", 
+                "fileName": "WORDLIST_FILENAME",
+                "folder": "WORDLIST/FOLDER/PATH",
+                "provider": "WORDLIST_PROVIDER",
+                "type":"STATIC/DYNAMIC"
+                }
+            ]
+        },
+        {"username" : [
+                {
+                "url": "WORDLIST_URL", 
+                "fileName": "WORDLIST_FILENAME",
+                "folder": "WORDLIST/FOLDER/PATH",
+                "provider": "WORDLIST_PROVIDER",
+                "type":"STATIC/DYNAMIC"
+                }
+            ]
+        },
+        {"password" : [
+                {
+                "url": "WORDLIST_URL", 
+                "fileName": "WORDLIST_FILENAME",
+                "folder": "WORDLIST/FOLDER/PATH",
+                "provider": "WORDLIST_PROVIDER",
+                "type":"STATIC/DYNAMIC"
+                }
+            ]
+        },
+        {"word" : [
+                {
+                "url": "WORDLIST_URL", 
+                "fileName": "WORDLIST_FILENAME",
+                "folder": "WORDLIST/FOLDER/PATH",
+                "provider": "WORDLIST_PROVIDER",
+                "type":"STATIC/DYNAMIC"
+                }
+            ]
+        },
+        {"technology" : [
+                {
+                "url": "WORDLIST_URL", 
+                "fileName": "WORDLIST_FILENAME",
+                "folder": "WORDLIST/FOLDER/PATH",
+                "provider": "WORDLIST_PROVIDER",
+                "type":"STATIC/DYNAMIC"
+                }
+            ]
+        },
+        {"payload" : [
+                {
+                "url": "WORDLIST_URL", 
+                "fileName": "WORDLIST_FILENAME",
+                "folder": "WORDLIST/FOLDER/PATH",
+                "provider": "WORDLIST_PROVIDER",
+                "type":"STATIC/DYNAMIC"
+                }
+            ]
+        }
+    ]
+}

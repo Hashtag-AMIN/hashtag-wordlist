@@ -1,0 +1,2142 @@
+#!/usr/bin/env python3
+
+import requests, time, urllib3, argparse, pathlib, sys, os, json, random, re, threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from urllib.parse import urlparse
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+wordlist_objects = {
+    
+    "wordlist":[
+        
+        {
+            "subdomain" : [
+            
+                {
+                    "url": "https://wordlists-cdn.assetnote.io/data/automated/httparchive_subdomains_2024_05_28.txt",
+                    "fileName": "httparchive_subdomains_2024_05_28.txt",
+                    "folder": "Subdomain",  
+                    "provider": "Assetnote",
+                    "type":"dynamic"
+                },
+                {
+                    "url": "https://wordlists-cdn.assetnote.io/data/manual/2m-subdomains.txt", 
+                    "fileName": "2m-subdomains.txt",
+                    "folder": "Subdomain",
+                    "provider": "Assetnote",
+                    "type":"static"
+                },
+                {
+                    "url": "https://wordlists-cdn.assetnote.io/data/manual/best-dns-wordlist.txt", 
+                    "fileName": "best-dns-wordlist.txt",
+                    "folder": "Subdomain",
+                    "provider": "Assetnote",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Discovery/DNS/dns-Jhaddix.txt",
+                    "fileName": "httparchive_subdomains_2024_05_28.txt",
+                    "folder": "Subdomain",  
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Discovery/DNS/tlds.txt",
+                    "fileName": "tlds.txt",
+                    "folder": "Subdomain",  
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/n0kovo/n0kovo_subdomains/refs/heads/main/n0kovo_subdomains_huge.txt", 
+                    "fileName": "n0kovo_subdomains_huge.txt",
+                    "folder": "Subdomain",
+                    "provider": "n0kovo_subdomains",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/n0kovo/n0kovo_subdomains/refs/heads/main/n0kovo_subdomains_large.txt", 
+                    "fileName": "n0kovo_subdomains_large.txt",
+                    "folder": "Subdomain",
+                    "provider": "n0kovo_subdomains",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/xajkep/wordlists/refs/heads/master/misc/email_free_providers.txt", 
+                    "fileName": "email_free_providers.txt",
+                    "folder": "Subdomain",
+                    "provider": "xajkep",
+                    "type":"static"
+                }
+            ]
+        },
+        
+        {
+            "directory" : [
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Discovery/Web-Content/raft-large-directories-lowercase.txt", 
+                    "fileName": "raft-large-directories-lowercase.txt",
+                    "folder": "Directory/raft",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Discovery/Web-Content/raft-large-directories.txt", 
+                    "fileName": "raft-large-directories.txt",
+                    "folder": "Directory/raft",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Discovery/Web-Content/raft-medium-directories-lowercase.txt", 
+                    "fileName": "raft-medium-directories-lowercase.txt",
+                    "folder": "Directory/raft",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Discovery/Web-Content/raft-medium-directories.txt", 
+                    "fileName": "raft-medium-directories.txt",
+                    "folder": "Directory/raft",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Discovery/Web-Content/raft-small-directories-lowercase.txt", 
+                    "fileName": "raft-small-directories-lowercase.txt",
+                    "folder": "Directory/raft",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Discovery/Web-Content/raft-small-directories.txt", 
+                    "fileName": "raft-small-directories.txt",
+                    "folder": "Directory/raft",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://wordlists-cdn.assetnote.io/data/automated/httparchive_directories_1m_2024_05_28.txt", 
+                    "fileName": "httparchive_directories_1m_2024_05_28.txt",
+                    "folder": "Directory",
+                    "provider": "Assetnote",
+                    "type":"dynamic"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/the-xentropy/samlists/refs/heads/main/sam-gh-directories-lowercase-top100000.txt", 
+                    "fileName": "sam-directories-lowercase-top100000.txt",
+                    "folder": "Directory",
+                    "provider": "samlists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/the-xentropy/samlists/refs/heads/main/sam-gh-directories-mixedcase-top100000.txt", 
+                    "fileName": "sam-directories-mixedcase-top100000.txt",
+                    "folder": "Directory",
+                    "provider": "samlists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/xajkep/wordlists/refs/heads/master/discovery/top_robotstxt_disallow_paths.txt", 
+                    "fileName": "top_robotstxt_disallow_paths.txt",
+                    "folder": "Directory",
+                    "provider": "xajkep",
+                    "type":"static"
+                }
+            ]
+        },
+        
+        {
+            "api" : [
+                {
+                    "url": "https://wordlists-cdn.assetnote.io/data/automated/httparchive_apiroutes_2024_05_28.txt", 
+                    "fileName": "httparchive_apiroutes_2024_05_28.txt",
+                    "folder": "API",
+                    "provider": "Assetnote",
+                    "type":"dynamic"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Discovery/Web-Content/api/actions.txt", 
+                    "fileName": "actions.txt",
+                    "folder": "API",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Discovery/Web-Content/api/objects.txt", 
+                    "fileName": "objects.txt",
+                    "folder": "API",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/xajkep/wordlists/refs/heads/master/discovery/functions_mix.txt", 
+                    "fileName": "functions_mix.txt",
+                    "folder": "API",
+                    "provider": "xajkep",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/YA551N3/Bug-Bounty-Wordlists/refs/heads/main/api_seen_in_wild.txt", 
+                    "fileName": "api_seen_in_wild.txt",
+                    "folder": "API",
+                    "provider": "YA551N3",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Discovery/Web-Content/api/api-endpoints-res.txt", 
+                    "fileName": "api-endpoints-word.txt",
+                    "folder": "API",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Discovery/Web-Content/Service-Specific/Swagger.txt", 
+                    "fileName": "Swagger-path.txt",
+                    "folder": "API",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Discovery/Web-Content/graphql.txt", 
+                    "fileName": "graphql-path.txt",
+                    "folder": "API/graphql",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/Escape-Technologies/graphql-wordlist/refs/heads/main/wordlists/argumentWordlist.txt", 
+                    "fileName": "argumentWordlist.txt",
+                    "folder": "API/graphql",
+                    "provider": "Escape-Technologies",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/Escape-Technologies/graphql-wordlist/refs/heads/main/wordlists/fieldWordlist.txt", 
+                    "fileName": "fieldWordlist.txt",
+                    "folder": "API/graphql",
+                    "provider": "Escape-Technologies",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/Escape-Technologies/graphql-wordlist/refs/heads/main/wordlists/mutationFieldWordlist.txt", 
+                    "fileName": "mutationFieldWordlist.txt",
+                    "folder": "API/graphql",
+                    "provider": "Escape-Technologies",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/Escape-Technologies/graphql-wordlist/refs/heads/main/wordlists/mutationTypeWordlist.txt", 
+                    "fileName": "mutationTypeWordlist.txt",
+                    "folder": "API/graphql",
+                    "provider": "Escape-Technologies",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/Escape-Technologies/graphql-wordlist/refs/heads/main/wordlists/operationFieldWordlist.txt", 
+                    "fileName": "operationFieldWordlist.txt",
+                    "folder": "API/graphql",
+                    "provider": "Escape-Technologies",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/Escape-Technologies/graphql-wordlist/refs/heads/main/wordlists/overallWordlist.txt", 
+                    "fileName": "overallWordlist.txt",
+                    "folder": "API/graphql",
+                    "provider": "Escape-Technologies",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/Escape-Technologies/graphql-wordlist/refs/heads/main/wordlists/queryFieldWordlist.txt", 
+                    "fileName": "queryFieldWordlist.txt",
+                    "folder": "API/graphql",
+                    "provider": "Escape-Technologies",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/Escape-Technologies/graphql-wordlist/refs/heads/main/wordlists/queryTypeWordlist.txt", 
+                    "fileName": "queryTypeWordlist.txt",
+                    "folder": "API/graphql",
+                    "provider": "Escape-Technologies",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/Escape-Technologies/graphql-wordlist/refs/heads/main/wordlists/subscriptionFieldWordlist.txt", 
+                    "fileName": "subscriptionFieldWordlist.txt",
+                    "folder": "API/graphql",
+                    "provider": "Escape-Technologies",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/Escape-Technologies/graphql-wordlist/refs/heads/main/wordlists/subscriptionTypeWordlist.txt", 
+                    "fileName": "subscriptionTypeWordlist.txt",
+                    "folder": "API/graphql",
+                    "provider": "Escape-Technologies",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/Escape-Technologies/graphql-wordlist/refs/heads/main/wordlists/typeWordlist.txt", 
+                    "fileName": "typeWordlist.txt",
+                    "folder": "API/graphql",
+                    "provider": "Escape-Technologies",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/Escape-Technologies/graphql-wordlist/refs/heads/main/wordlists/100k/argumentWordlist-100k.txt", 
+                    "fileName": "argumentWordlist-100k.txt",
+                    "folder": "API/graphql/100k",
+                    "provider": "Escape-Technologies",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/Escape-Technologies/graphql-wordlist/refs/heads/main/wordlists/100k/fieldWordlist-100k.txt", 
+                    "fileName": "fieldWordlist-100k.txt",
+                    "folder": "API/graphql/100k",
+                    "provider": "Escape-Technologies",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/Escape-Technologies/graphql-wordlist/refs/heads/main/wordlists/100k/mutationFieldWordlist-100k.txt", 
+                    "fileName": "mutationFieldWordlist-100k.txt",
+                    "folder": "API/graphql/100k",
+                    "provider": "Escape-Technologies",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/Escape-Technologies/graphql-wordlist/refs/heads/main/wordlists/100k/mutationTypeWordlist-100k.txt", 
+                    "fileName": "mutationTypeWordlist-100k.txt",
+                    "folder": "API/graphql/100k",
+                    "provider": "Escape-Technologies",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/Escape-Technologies/graphql-wordlist/refs/heads/main/wordlists/100k/operationFieldWordlist-100k.txt", 
+                    "fileName": "operationFieldWordlist-100k.txt",
+                    "folder": "API/graphql/100k",
+                    "provider": "Escape-Technologies",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/Escape-Technologies/graphql-wordlist/refs/heads/main/wordlists/100k/operationTypeWordlist-100k.txt", 
+                    "fileName": "operationTypeWordlist-100k.txt",
+                    "folder": "API/graphql/100k",
+                    "provider": "Escape-Technologies",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/Escape-Technologies/graphql-wordlist/refs/heads/main/wordlists/100k/overallWordlist-100k.txt", 
+                    "fileName": "overallWordlist-100k.txt",
+                    "folder": "API/graphql/100k",
+                    "provider": "Escape-Technologies",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/Escape-Technologies/graphql-wordlist/refs/heads/main/wordlists/100k/queryFieldWordlist-100k.txt", 
+                    "fileName": "queryFieldWordlist-100k.txt",
+                    "folder": "API/graphql/100k",
+                    "provider": "Escape-Technologies",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/Escape-Technologies/graphql-wordlist/refs/heads/main/wordlists/100k/queryTypeWordlist-100k.txt", 
+                    "fileName": "queryTypeWordlist-100k.txt",
+                    "folder": "API/graphql/100k",
+                    "provider": "Escape-Technologies",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/Escape-Technologies/graphql-wordlist/refs/heads/main/wordlists/100k/subscriptionFieldWordlist-100k.txt", 
+                    "fileName": "subscriptionFieldWordlist-100k.txt",
+                    "folder": "API/graphql/100k",
+                    "provider": "Escape-Technologies",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/Escape-Technologies/graphql-wordlist/refs/heads/main/wordlists/100k/subscriptionTypeWordlist-100k.txt", 
+                    "fileName": "subscriptionTypeWordlist-100k.txt",
+                    "folder": "API/graphql/100k",
+                    "provider": "Escape-Technologies",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/Escape-Technologies/graphql-wordlist/refs/heads/main/wordlists/100k/typeWordlist-100k.txt", 
+                    "fileName": "typeWordlist-100k.txt",
+                    "folder": "API/graphql/100k",
+                    "provider": "Escape-Technologies",
+                    "type":"static"
+                }
+                
+            ]
+        },
+
+        {
+            "file" : [
+                {
+                    "url": "https://wordlists-cdn.assetnote.io/data/manual/asp_lowercase.txt", 
+                    "fileName": "asp_lowercase.txt",
+                    "folder": "File/Assetnote-static",
+                    "provider": "Assetnote",
+                    "type":"static"
+                },
+                {
+                    "url": "https://wordlists-cdn.assetnote.io/data/manual/aspx_lowercase.txt", 
+                    "fileName": "aspx_lowercase.txt",
+                    "folder": "File/Assetnote-static",
+                    "provider": "Assetnote",
+                    "type":"static"
+                },
+                {
+                    "url": "https://wordlists-cdn.assetnote.io/data/manual/bak.txt", 
+                    "fileName": "bak.txt",
+                    "folder": "File/Assetnote-static",
+                    "provider": "Assetnote",
+                    "type":"static"
+                },
+                {
+                    "url": "https://wordlists-cdn.assetnote.io/data/manual/dot_filenames.txt", 
+                    "fileName": "dot_filenames.txt",
+                    "folder": "File/Assetnote-static",
+                    "provider": "Assetnote",
+                    "type":"static"
+                },
+                {
+                    "url": "https://wordlists-cdn.assetnote.io/data/manual/jsp.txt", 
+                    "fileName": "jsp.txt",
+                    "folder": "File/Assetnote-static",
+                    "provider": "Assetnote",
+                    "type":"static"
+                },
+                {
+                    "url": "https://wordlists-cdn.assetnote.io/data/manual/phpmillion.txt", 
+                    "fileName": "phpmillion.txt",
+                    "folder": "File/Assetnote-static",
+                    "provider": "Assetnote",
+                    "type":"static"
+                },
+                {
+                    "url": "https://wordlists-cdn.assetnote.io/data/manual/pl.txt", 
+                    "fileName": "pl.txt",
+                    "folder": "File/Assetnote-static",
+                    "provider": "Assetnote",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Discovery/Web-Content/raft-large-extensions.txt", 
+                    "fileName": "raft-large-extensions.txt",
+                    "folder": "File/raft-extensions",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Discovery/Web-Content/raft-medium-extensions.txt", 
+                    "fileName": "raft-medium-extensions.txt",
+                    "folder": "File/raft-extensions",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Discovery/Web-Content/raft-small-extensions.txt", 
+                    "fileName": "raft-small-extensions.txt",
+                    "folder": "File/raft-extensions",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Discovery/Web-Content/web-extensions-big.txt", 
+                    "fileName": "web-extensions-big.txt",
+                    "folder": "File/raft-extensions",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://wordlists-cdn.assetnote.io/data/automated/httparchive_aspx_asp_cfm_svc_ashx_asmx_2024_05_28.txt", 
+                    "fileName": "httparchive_aspx_asp_cfm_svc_ashx_asmx_2024_05_28.txt",
+                    "folder": "File/Assetnote-dynamic",
+                    "provider": "Assetnote",
+                    "type":"dynamic"
+                },
+                {
+                    "url": "https://wordlists-cdn.assetnote.io/data/automated/httparchive_cgi_pl_2024_05_28.txt", 
+                    "fileName": "httparchive_cgi_pl_2024_05_28.txt",
+                    "folder": "File/Assetnote-dynamic",
+                    "provider": "Assetnote",
+                    "type":"dynamic"
+                },
+                {
+                    "url": "https://wordlists-cdn.assetnote.io/data/automated/httparchive_html_htm_2024_05_28.txt", 
+                    "fileName": "httparchive_html_htm_2024_05_28.txt",
+                    "folder": "File/Assetnote-dynamic",
+                    "provider": "Assetnote",
+                    "type":"dynamic"
+                },
+                {
+                    "url": "https://wordlists-cdn.assetnote.io/data/automated/httparchive_js_2024_05_28.txt", 
+                    "fileName": "httparchive_js_2024_05_28.txt",
+                    "folder": "File/Assetnote-dynamic",
+                    "provider": "Assetnote",
+                    "type":"dynamic"
+                },
+                {
+                    "url": "https://wordlists-cdn.assetnote.io/data/automated/httparchive_jsp_jspa_do_action_2024_05_28.txt", 
+                    "fileName": "httparchive_jsp_jspa_do_action_2024_05_28.txt",
+                    "folder": "File/Assetnote-dynamic",
+                    "provider": "Assetnote",
+                    "type":"dynamic"
+                },
+                {
+                    "url": "https://wordlists-cdn.assetnote.io/data/automated/httparchive_php_2024_05_28.txt", 
+                    "fileName": "httparchive_php_2024_05_28.txt",
+                    "folder": "File/Assetnote-dynamic",
+                    "provider": "Assetnote",
+                    "type":"dynamic"
+                },
+                {
+                    "url": "https://wordlists-cdn.assetnote.io/data/automated/httparchive_txt_2024_05_28.txt", 
+                    "fileName": "httparchive_txt_2024_05_28.txt",
+                    "folder": "File/Assetnote-dynamic",
+                    "provider": "Assetnote",
+                    "type":"dynamic"
+                },
+                {
+                    "url": "https://wordlists-cdn.assetnote.io/data/automated/httparchive_xml_2024_05_28.txt", 
+                    "fileName": "httparchive_xml_2024_05_28.txt",
+                    "folder": "File/Assetnote-dynamic",
+                    "provider": "Assetnote",
+                    "type":"dynamic"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/xajkep/wordlists/refs/heads/master/discovery/asp_files_with_path.txt", 
+                    "fileName": "asp_files_with_path.txt",
+                    "folder": "File",
+                    "provider": "xajkep",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/the-xentropy/samlists/refs/heads/main/sam-gh-files-lowercase-top1000000.txt", 
+                    "fileName": "sam-files-lowercase-top1000000.txt",
+                    "folder": "File",
+                    "provider": "samlists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/the-xentropy/samlists/refs/heads/main/sam-gh-files-mixedcase-top1000000.txt", 
+                    "fileName": "sam-files-mixedcase-top1000000.txt",
+                    "folder": "File",
+                    "provider": "samlists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/YA551N3/Bug-Bounty-Wordlists/refs/heads/main/admin.txt", 
+                    "fileName": "admin.txt",
+                    "folder": "File",
+                    "provider": "YA551N3/Bug-Bounty-Wordlists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/YA551N3/Bug-Bounty-Wordlists/refs/heads/main/dll_files.txt", 
+                    "fileName": "dll.txt",
+                    "folder": "File",
+                    "provider": "YA551N3/Bug-Bounty-Wordlists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/six2dez/OneListForAll/refs/heads/main/dict/env_short.txt", 
+                    "fileName": "env.txt",
+                    "folder": "File",
+                    "provider": "OneListForAll",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/xajkep/wordlists/refs/heads/master/discovery/log_files_only.txt", 
+                    "fileName": "log.txt",
+                    "folder": "File",
+                    "provider": "xajkep",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/six2dez/OneListForAll/refs/heads/main/dict/yaml_long.txt", 
+                    "fileName": "yaml.txt",
+                    "folder": "File",
+                    "provider": "OneListForAll",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/six2dez/OneListForAll/refs/heads/main/dict/yml_long.txt", 
+                    "fileName": "yml.txt",
+                    "folder": "File",
+                    "provider": "OneListForAll",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/Karanxa/Bug-Bounty-Wordlists/refs/heads/main/backup_files_only.txt", 
+                    "fileName": "backup.txt",
+                    "folder": "File",
+                    "provider": "Karanxa/Bug-Bounty-Wordlists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/xajkep/wordlists/refs/heads/master/discovery/backup_files_with_path.txt", 
+                    "fileName": "backup_with_path.txt",
+                    "folder": "File",
+                    "provider": "xajkep",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/0xPugal/fuzz4bounty/refs/heads/master/discovery/conf.txt", 
+                    "fileName": "conf.txt",
+                    "folder": "File",
+                    "provider": "fuzz4bounty",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/0xPugal/fuzz4bounty/refs/heads/master/discovery/config.txt", 
+                    "fileName": "config.txt",
+                    "folder": "File",
+                    "provider": "fuzz4bounty",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/kkrypt0nn/wordlists/refs/heads/main/wordlists/discovery/gitignore.txt", 
+                    "fileName": "gitignore.txt",
+                    "folder": "File",
+                    "provider": "kkrypt0nn",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/tamimhasan404/Wordlist404/refs/heads/main/Git/payload.txt", 
+                    "fileName": "dot-git.txt",
+                    "folder": "File",
+                    "provider": "Wordlist404",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/0xPugal/fuzz4bounty/refs/heads/master/discovery/ini.txt", 
+                    "fileName": "ini.txt",
+                    "folder": "File",
+                    "provider": "fuzz4bounty",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Discovery/Web-Content/File-Extensions-Universal-SVNDigger-Project/cat/Database/sql.txt", 
+                    "fileName": "sql.txt",
+                    "folder": "File",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Discovery/Web-Content/File-Extensions-Universal-SVNDigger-Project/cat/Language/jar.txt", 
+                    "fileName": "jar.txt",
+                    "folder": "File",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/six2dez/OneListForAll/refs/heads/main/dict/rb_short.txt", 
+                    "fileName": "rb.txt",
+                    "folder": "File",
+                    "provider": "OneListForAll",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/six2dez/OneListForAll/refs/heads/main/dict/vb_short.txt", 
+                    "fileName": "vb.txt",
+                    "folder": "File",
+                    "provider": "OneListForAll",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/six2dez/OneListForAll/refs/heads/main/dict/wsdl_short.txt", 
+                    "fileName": "wsdl.txt",
+                    "folder": "File",
+                    "provider": "OneListForAll",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/six2dez/OneListForAll/refs/heads/main/dict/zip_long.txt", 
+                    "fileName": "zip.txt",
+                    "folder": "File",
+                    "provider": "OneListForAll",
+                    "type":"static"
+                }
+            ]
+        },
+
+        {
+            "word" : [
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Discovery/Web-Content/raft-large-words.txt", 
+                    "fileName": "raft-large-words.txt",
+                    "folder": "Word/raft",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Discovery/Web-Content/raft-large-words-lowercase.txt", 
+                    "fileName": "raft-large-words-lowercase.txt",
+                    "folder": "Word/raft",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Discovery/Web-Content/raft-medium-words.txt", 
+                    "fileName": "raft-medium-words.txt",
+                    "folder": "Word/raft",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Discovery/Web-Content/raft-medium-words-lowercase.txt", 
+                    "fileName": "raft-medium-words-lowercase.txt",
+                    "folder": "Word/raft",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Discovery/Web-Content/raft-small-words.txt", 
+                    "fileName": "raft-small-words.txt",
+                    "folder": "Word/raft",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Discovery/Web-Content/raft-small-words-lowercase.txt", 
+                    "fileName": "raft-small-words-lowercase.txt",
+                    "folder": "Word/raft",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://wordlists-cdn.assetnote.io/data/manual/wordlist_no_underscores.txt", 
+                    "fileName": "wordlist_no_underscores.txt",
+                    "folder": "Word",
+                    "provider": "Assetnote",
+                    "type":"static"
+                },
+                {
+                    "url": "https://wordlists-cdn.assetnote.io/data/manual/wordlist_with_underscores.txt", 
+                    "fileName": "wordlist_with_underscores.txt",
+                    "folder": "Word",
+                    "provider": "Assetnote",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Fuzzing/1-4_all_letters_a-z.txt", 
+                    "fileName": "4-lenght_a-z.txt",
+                    "folder": "Word",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/kkrypt0nn/wordlists/refs/heads/main/wordlists/stressing/char.txt", 
+                    "fileName": "a-z.txt",
+                    "folder": "Word",
+                    "provider": "kkrypt0nn",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/kkrypt0nn/wordlists/refs/heads/main/wordlists/stressing/alphanum_case.txt", 
+                    "fileName": "a-z-A-Z_0-1.txt",
+                    "folder": "Word",
+                    "provider": "kkrypt0nn",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/kkrypt0nn/wordlists/refs/heads/main/wordlists/stressing/alphanum_case_extra.txt", 
+                    "fileName": "a-z_A-Z_0-1_sym.txt",
+                    "folder": "Word",
+                    "provider": "kkrypt0nn",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/kkrypt0nn/wordlists/refs/heads/main/wordlists/stressing/unicode.txt", 
+                    "fileName": "unicode.txt",
+                    "folder": "Word",
+                    "provider": "kkrypt0nn",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/kkrypt0nn/wordlists/refs/heads/main/wordlists/stressing/uri_hex.txt", 
+                    "fileName": "hex_url.txt",
+                    "folder": "Word",
+                    "provider": "kkrypt0nn",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/fuzzdb-project/fuzzdb/refs/heads/master/attack/control-chars/NullByteRepresentations.txt", 
+                    "fileName": "NullByte.txt",
+                    "folder": "Word",
+                    "provider": "fuzzdb",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/fuzzdb-project/fuzzdb/refs/heads/master/attack/control-chars/true.txt", 
+                    "fileName": "true.txt",
+                    "folder": "Word",
+                    "provider": "fuzzdb",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/fuzzdb-project/fuzzdb/refs/heads/master/attack/unicode/specialchars.txt", 
+                    "fileName": "specialchars.txt",
+                    "folder": "Word",
+                    "provider": "fuzzdb",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Fuzzing/country-codes.txt", 
+                    "fileName": "country-name-brief.txt",
+                    "folder": "Word",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Fuzzing/special-chars%20%2B%20urlencoded.txt", 
+                    "fileName": "special-chars-urlencoded.txt",
+                    "folder": "Word",
+                    "provider": "SecLists",
+                    "type":"static"
+                }
+            ]
+        },
+
+        {
+            "parameter" : [
+                {
+                    "url": "https://raw.githubusercontent.com/PortSwigger/param-miner/refs/heads/master/resources/params", 
+                    "fileName": "param-miner-param.txt",
+                    "folder": "Parameter",
+                    "provider": "PortSwigger",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Fuzzing/JSON.Fuzzing.txt", 
+                    "fileName": "JSON-Fuzzing.txt",
+                    "folder": "Parameter",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/the-xentropy/samlists/refs/heads/main/sam-cc-parameters-mixedcase-all.txt", 
+                    "fileName": "sam-parameters-mixedcase-all.txt",
+                    "folder": "Parameter",
+                    "provider": "samlists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://wordlists-cdn.assetnote.io/data/automated/httparchive_parameters_top_1m_2024_05_28.txt", 
+                    "fileName": "httparchive_parameters_top_1m_2024_05_28.txt",
+                    "folder": "Parameter",
+                    "provider": "Assetnote",
+                    "type":"dynamic"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/s0md3v/Arjun/refs/heads/master/arjun/db/large.txt", 
+                    "fileName": "Arjun-large.txt",
+                    "folder": "Parameter",
+                    "provider": "Arjun",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/s0md3v/Arjun/refs/heads/master/arjun/db/medium.txt", 
+                    "fileName": "Arjun-medium.txt",
+                    "folder": "Parameter",
+                    "provider": "Arjun",
+                    "type":"static"
+                }
+            ]
+        },
+
+        {
+            "header" : [
+                {
+                    "url": "https://raw.githubusercontent.com/PortSwigger/param-miner/refs/heads/master/resources/headers", 
+                    "fileName": "header-param-miner.txt",
+                    "folder": "Header",
+                    "provider": "PortSwigger",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Fuzzing/http-request-methods.txt", 
+                    "fileName": "http-request-methods.txt",
+                    "folder": "Header",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Fuzzing/User-Agents/user-agents-whatismybrowserdotcom-large.txt", 
+                    "fileName": "user-agents-large.txt",
+                    "folder": "Header",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Fuzzing/User-Agents/user-agents-whatismybrowserdotcom-small.txt", 
+                    "fileName": "user-agents-small.txt",
+                    "folder": "Header",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/HacktivistRO/Bug-Bounty-Wordlists/refs/heads/master/Wordlists/content-type-header-values-for-fuzzing.txt", 
+                    "fileName": "content-type-values.txt",
+                    "folder": "Header",
+                    "provider": "HacktivistRO/Bug-Bounty-Wordlists",
+                    "type":"static"
+                }
+            ]
+        },
+
+        {
+            "number" : [
+                {
+                    "url": "https://raw.githubusercontent.com/kkrypt0nn/wordlists/refs/heads/main/wordlists/stressing/2_digits_number.txt", 
+                    "fileName": "2_digits_00_99.txt",
+                    "folder": "Number",
+                    "provider": "kkrypt0nn",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/kkrypt0nn/wordlists/refs/heads/main/wordlists/stressing/3_digits_000_to_999.txt", 
+                    "fileName": "3_digits_000_999.txt",
+                    "folder": "Number",
+                    "provider": "kkrypt0nn",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/kkrypt0nn/wordlists/refs/heads/main/wordlists/stressing/4_digits_0000_to_9999.txt", 
+                    "fileName": "4_digits_0000_9999.txt",
+                    "folder": "Number",
+                    "provider": "kkrypt0nn",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/kkrypt0nn/wordlists/refs/heads/main/wordlists/stressing/5_digits_00000_to_99999.txt", 
+                    "fileName": "5_digits_00000_99999.txt",
+                    "folder": "Number",
+                    "provider": "kkrypt0nn",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/kkrypt0nn/wordlists/refs/heads/main/wordlists/stressing/6_digits_000000_to_999999.txt", 
+                    "fileName": "6_digits_000000_999999.txt",
+                    "folder": "Number",
+                    "provider": "kkrypt0nn",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Discovery/Infrastructure/Ports-1-To-65535.txt", 
+                    "fileName": "Ports-1-65535.txt",
+                    "folder": "Number",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Fuzzing/Amounts/zero_point_one.txt", 
+                    "fileName": "zero_point_one.txt",
+                    "folder": "Number",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Fuzzing/Amounts/zero.txt", 
+                    "fileName": "zero.txt",
+                    "folder": "Number",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Fuzzing/Amounts/one.txt", 
+                    "fileName": "one.txt",
+                    "folder": "Number",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Fuzzing/Amounts/hundred.txt", 
+                    "fileName": "hundred.txt",
+                    "folder": "Number",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Fuzzing/Amounts/hundred_thousand.txt", 
+                    "fileName": "hundred_thousand.txt",
+                    "folder": "Number",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/fuzzdb-project/fuzzdb/refs/heads/master/attack/integer-overflow/integer-overflows.txt", 
+                    "fileName": "integer-overflows.txt",
+                    "folder": "Number",
+                    "provider": "fuzzdb",
+                    "type":"static"
+                }
+            ]
+        },
+
+        {
+            "username" : [
+                {
+                    "url": "https://raw.githubusercontent.com/fuzzdb-project/fuzzdb/refs/heads/master/wordlists-user-passwd/oracle/oracle_logins.txt", 
+                    "fileName": "oracle_logins.txt",
+                    "folder": "Username",
+                    "provider": "fuzzdb",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/fuzzdb-project/fuzzdb/refs/heads/master/wordlists-user-passwd/unix-os/unix_users.txt", 
+                    "fileName": "unix_users.txt",
+                    "folder": "Username",
+                    "provider": "fuzzdb",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/kkrypt0nn/wordlists/refs/heads/main/wordlists/usernames/default_users_for_services.txt", 
+                    "fileName": "default_users_for_services.txt",
+                    "folder": "Username",
+                    "provider": "kkrypt0nn",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/kkrypt0nn/wordlists/refs/heads/main/wordlists/usernames/http_default_users.txt", 
+                    "fileName": "http_default_users.txt",
+                    "folder": "Username",
+                    "provider": "kkrypt0nn",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/kkrypt0nn/wordlists/refs/heads/main/wordlists/htb/users.txt", 
+                    "fileName": "users.txt",
+                    "folder": "Username",
+                    "provider": "kkrypt0nn",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/kkrypt0nn/wordlists/refs/heads/main/wordlists/names/names.txt", 
+                    "fileName": "names.txt",
+                    "folder": "Username",
+                    "provider": "kkrypt0nn",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/kkrypt0nn/wordlists/refs/heads/main/wordlists/usernames/multiple_sources_users.txt", 
+                    "fileName": "multiple_sources_users.txt",
+                    "folder": "Username",
+                    "provider": "kkrypt0nn",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Fuzzing/Databases/OracleDB-SID.txt", 
+                    "fileName": "OracleDB-SID.txt",
+                    "folder": "Username",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/tamimhasan404/Wordlist404/refs/heads/main/FTP/FTP-default-username.txt", 
+                    "fileName": "FTP-default-username.txt",
+                    "folder": "Username",
+                    "provider": "Wordlist404",
+                    "type":"static"
+                }
+            ]
+        },
+
+        {
+            "password" : [
+                {
+                    "url": "https://raw.githubusercontent.com/kkrypt0nn/wordlists/refs/heads/main/wordlists/passwords/http_default_passwords.txt", 
+                    "fileName": "http_default_passwords.txt",
+                    "folder": "Password",
+                    "provider": "kkrypt0nn",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/kkrypt0nn/wordlists/refs/heads/main/wordlists/passwords/default_passwords_for_services.txt", 
+                    "fileName": "default_passwords_for_services.txt",
+                    "folder": "Password",
+                    "provider": "kkrypt0nn",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/fuzzdb-project/fuzzdb/refs/heads/master/wordlists-user-passwd/oracle/oracle_passwords.txt", 
+                    "fileName": "oracle_passwords.txt",
+                    "folder": "Password",
+                    "provider": "fuzzdb",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/fuzzdb-project/fuzzdb/refs/heads/master/wordlists-user-passwd/unix-os/unix_passwords.txt", 
+                    "fileName": "unix_passwords.txt",
+                    "folder": "Password",
+                    "provider": "fuzzdb",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/tamimhasan404/Wordlist404/refs/heads/main/FTP/FTP-default-password.txt", 
+                    "fileName": "FTP-default-password.txt",
+                    "folder": "Password",
+                    "provider": "Wordlist404",
+                    "type":"static"
+                },
+                {
+                    "url": "https://github.com/brannondorsey/naive-hashcat/releases/download/data/rockyou.txt", 
+                    "fileName": "rockyou.txt",
+                    "folder": "Password",
+                    "provider": "naive-hashcat",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/Karanxa/Bug-Bounty-Wordlists/refs/heads/main/jwt-secrets.txt", 
+                    "fileName": "jwt-secrets.txt",
+                    "folder": "Password",
+                    "provider": "Karanxa/Bug-Bounty-Wordlists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/kkrypt0nn/wordlists/refs/heads/main/wordlists/passwords/most_used_passwords.txt", 
+                    "fileName": "most_used_passwords.txt",
+                    "folder": "Password",
+                    "provider": "kkrypt0nn",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Passwords/Default-Credentials/default-passwords.txt", 
+                    "fileName": "default-passwords.txt",
+                    "folder": "Password",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Passwords/Common-Credentials/Pwdb_top-1000000.txt", 
+                    "fileName": "Pwdb_top-1000000.txt",
+                    "folder": "Password",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Passwords/Common-Credentials/2024-197_most_used_passwords.txt", 
+                    "fileName": "2024-197_most_used_passwords.txt",
+                    "folder": "Password",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Passwords/Keyboard-Walks/Keyboard-Combinations.txt", 
+                    "fileName": "Keyboard-Combinations.txt",
+                    "folder": "Password",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Passwords/WiFi-WPA/probable-v2-wpa-top4800.txt", 
+                    "fileName": "WiFi-WPA-top4800.txt",
+                    "folder": "Password",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/wallarm/jwt-secrets/refs/heads/master/jwt.secrets.list", 
+                    "fileName": "jwt.secrets.list.txt",
+                    "folder": "Password",
+                    "provider": "SecLists",
+                    "type":"static"
+                }
+            ]
+        },
+
+        {
+            "technology" : [
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Discovery/Web-Content/Web-Servers/nginx.txt", 
+                    "fileName": "nginx.txt",
+                    "folder": "Tech",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/0xPugal/fuzz4bounty/refs/heads/master/technologies/tomcat.txt", 
+                    "fileName": "tomcat.txt",
+                    "folder": "Tech",
+                    "provider": "fuzz4bounty",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/kkrypt0nn/wordlists/refs/heads/main/wordlists/discovery/apache.txt", 
+                    "fileName": "apache.txt",
+                    "folder": "Tech",
+                    "provider": "kkrypt0nn",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/six2dez/OneListForAll/refs/heads/main/dict/wordpress_long.txt", 
+                    "fileName": "wordpress.txt",
+                    "folder": "Tech/wordpress",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/six2dez/OneListForAll/refs/heads/main/dict/wp-plugins_long.txt", 
+                    "fileName": "wp-plugins.txt",
+                    "folder": "Tech/wordpress",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Discovery/Web-Content/CMS/wp-themes.fuzz.txt", 
+                    "fileName": "wp-themes.txt",
+                    "folder": "Tech/wordpress",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/kkrypt0nn/wordlists/refs/heads/main/wordlists/discovery/joomla.txt", 
+                    "fileName": "joomla.txt",
+                    "folder": "Tech/joomla",
+                    "provider": "kkrypt0nn",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Discovery/Web-Content/CMS/joomla-plugins.fuzz.txt", 
+                    "fileName": "joomla-plugins.txt",
+                    "folder": "Tech/joomla",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Discovery/Web-Content/CMS/joomla-themes.fuzz.txt", 
+                    "fileName": "joomla-themes.txt",
+                    "folder": "Tech/joomla",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Discovery/Web-Content/Web-Servers/IIS.txt", 
+                    "fileName": "IIS.txt",
+                    "folder": "Tech",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Discovery/Web-Content/CMS/Oracle-EBS-wordlist.txt", 
+                    "fileName": "Oracle-EBS.txt",
+                    "folder": "Tech/oracle",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/bashexplode/directory-wordlists/refs/heads/master/sharepoint", 
+                    "fileName": "sharepoint.txt",
+                    "folder": "Tech/sharepoint",
+                    "provider": "bashexplode",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Discovery/Web-Content/CMS/Sharepoint-Ennumeration.txt", 
+                    "fileName": "Sharepoint-Ennumeration.txt",
+                    "folder": "Tech/sharepoint",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Discovery/Web-Content/Service-Specific/Oracle-WebLogic.txt", 
+                    "fileName": "Oracle-WebLogic.txt",
+                    "folder": "Tech/oracle",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Discovery/Web-Content/CMS/Drupal.txt", 
+                    "fileName": "Drupal.txt",
+                    "folder": "Tech/drupal",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Discovery/Web-Content/CMS/drupal-themes.fuzz.txt", 
+                    "fileName": "drupal-themes.txt",
+                    "folder": "Tech/drupal",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/payloadbox/directory-payload-list/refs/heads/master/Intruder/drupal/drupal_plugins.fuzz.txt", 
+                    "fileName": "drupal_plugins.txt",
+                    "folder": "Tech/drupal",
+                    "provider": "payloadbox",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Discovery/Web-Content/CMS/dotnetnuke.txt", 
+                    "fileName": "dotnetnuke.txt",
+                    "folder": "Tech",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Discovery/Web-Content/Programming-Language-Specific/Java-Spring-Boot.txt", 
+                    "fileName": "Java-Spring-Boot.txt",
+                    "folder": "Tech",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/six2dez/OneListForAll/refs/heads/main/dict/rails_short.txt", 
+                    "fileName": "ryby-on-rails.txt",
+                    "folder": "Tech",
+                    "provider": "OneListForAll",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Discovery/Web-Content/Programming-Language-Specific/golang.txt", 
+                    "fileName": "golang.txt",
+                    "folder": "Tech",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Discovery/Web-Content/Roundcube-123.txt", 
+                    "fileName": "Roundcube.txt",
+                    "folder": "Tech",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/orwagodfather/My-WordLISTs/refs/heads/main/kibana.txt", 
+                    "fileName": "kibana.txt",
+                    "folder": "Tech",
+                    "provider": "orwagodfather",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/0xPugal/fuzz4bounty/refs/heads/master/technologies/django.txt", 
+                    "fileName": "django.txt",
+                    "folder": "Tech",
+                    "provider": "fuzz4bounty",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/0xPugal/fuzz4bounty/refs/heads/master/technologies/elasticsearch.txt", 
+                    "fileName": "elasticsearch.txt",
+                    "folder": "Tech",
+                    "provider": "fuzz4bounty",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/0xPugal/fuzz4bounty/refs/heads/master/technologies/jira.txt", 
+                    "fileName": "jira.txt",
+                    "folder": "Tech",
+                    "provider": "fuzz4bounty",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/0xPugal/fuzz4bounty/refs/heads/master/technologies/ntlm.txt", 
+                    "fileName": "ntlm.txt",
+                    "folder": "Tech",
+                    "provider": "fuzz4bounty",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/six2dez/OneListForAll/refs/heads/main/dict/bitrix_long.txt", 
+                    "fileName": "bitrix.txt",
+                    "folder": "Tech",
+                    "provider": "OneListForAll",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/six2dez/OneListForAll/refs/heads/main/dict/jenkins_short.txt", 
+                    "fileName": "jenkins.txt",
+                    "folder": "Tech",
+                    "provider": "OneListForAll",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/six2dez/OneListForAll/refs/heads/main/dict/piwik_long.txt", 
+                    "fileName": "piwik_long.txt",
+                    "folder": "Tech",
+                    "provider": "SecLists",
+                    "type":"static"
+                }
+            ]
+        },
+
+        {
+            "payload" : [
+                {
+                    "url": "https://raw.githubusercontent.com/YA551N3/Bug-Bounty-Wordlists/refs/heads/main/open-redirects.txt", 
+                    "fileName": "open-redirects.txt",
+                    "folder": "Payload/open-redir",
+                    "provider": "YA551N3/Bug-Bounty-Wordlists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/tamimhasan404/Wordlist404/refs/heads/main/Open-Redirection/payload.txt", 
+                    "fileName": "open-redirects-bypass.txt",
+                    "folder": "Payload/open-redir",
+                    "provider": "Wordlist404",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/YA551N3/Bug-Bounty-Wordlists/refs/heads/main/403_header_payloads.txt", 
+                    "fileName": "403_header_payloads.txt",
+                    "folder": "Payload/Bypass-403",
+                    "provider": "YA551N3/Bug-Bounty-Wordlists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/YA551N3/Bug-Bounty-Wordlists/refs/heads/main/403_url_payloads.txt", 
+                    "fileName": "403_url_payloads.txt",
+                    "folder": "Payload/Bypass-403",
+                    "provider": "YA551N3/Bug-Bounty-Wordlists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Fuzzing/Databases/SQLi/quick-SQLi.txt", 
+                    "fileName": "quick-SQLi.txt",
+                    "folder": "Payload/sqli",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/kkrypt0nn/wordlists/refs/heads/main/wordlists/vulnerabilities/sql.txt", 
+                    "fileName": "sql.txt",
+                    "folder": "Payload/sqli",
+                    "provider": "kkrypt0nn",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Fuzzing/login_bypass.txt", 
+                    "fileName": "login_bypass.txt",
+                    "folder": "Payload/sqli",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/YA551N3/Bug-Bounty-Wordlists/refs/heads/main/sqli_blind_time-based.txt", 
+                    "fileName": "sqli_blind_time-based.txt",
+                    "folder": "Payload/sqli",
+                    "provider": "YA551N3/Bug-Bounty-Wordlists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Fuzzing/Databases/SQLi/MSSQL.fuzzdb.txt", 
+                    "fileName": "MSSQL.txt",
+                    "folder": "Payload/sqli",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/fuzzdb-project/fuzzdb/refs/heads/master/attack/sql-injection/payloads-sql-blind/payloads-sql-blind-MSSQL-WHERE.txt", 
+                    "fileName": "MSSQL-blind-WHERE.txt",
+                    "folder": "Payload/sqli",
+                    "provider": "fuzzdb",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Fuzzing/Databases/SQLi/MySQL.fuzzdb.txt", 
+                    "fileName": "MySQL.txt",
+                    "folder": "Payload/sqli",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/fuzzdb-project/fuzzdb/refs/heads/master/attack/sql-injection/payloads-sql-blind/payloads-sql-blind-MySQL-WHERE.txt", 
+                    "fileName": "MySQL-blind--WHERE.txt",
+                    "folder": "Payload/sqli",
+                    "provider": "fuzzdb",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Fuzzing/Databases/SQLi/Oracle.fuzzdb.txt", 
+                    "fileName": "Oracle.txt",
+                    "folder": "Payload/sqli",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/fuzzdb-project/fuzzdb/refs/heads/master/attack/sql-injection/exploit/postgres-enumeration.txt", 
+                    "fileName": "Postgres-enumeration.txt",
+                    "folder": "Payload/sqli",
+                    "provider": "fuzzdb",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/cr0hn/nosqlinjection_wordlists/refs/heads/master/mongodb_nosqli.txt", 
+                    "fileName": "mongodb_nosqli.txt",
+                    "folder": "Payload/nosqli",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Fuzzing/Databases/SQLi/NoSQL.txt", 
+                    "fileName": "NoSQL.txt",
+                    "folder": "Payload/nosqli",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/HacktivistRO/Bug-Bounty-Wordlists/refs/heads/master/Wordlists/Directory-Traversal/lfi-win-fuzzing.txt", 
+                    "fileName": "lfi-win.txt",
+                    "folder": "Payload/lfi",
+                    "provider": "HacktivistRO/Bug-Bounty-Wordlists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/kkrypt0nn/wordlists/refs/heads/main/wordlists/discovery/lfi_unix.txt", 
+                    "fileName": "lfi_unix.txt",
+                    "folder": "Payload/lfi",
+                    "provider": "kkrypt0nn",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/six2dez/OneListForAll/refs/heads/main/dict/dot-slash-pathtraversal_and_lfi_pairing_long.txt", 
+                    "fileName": "dot-slash.txt",
+                    "folder": "Payload/lfi",
+                    "provider": "OneListForAll",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Fuzzing/XSS/human-friendly/XSS-Jhaddix.txt", 
+                    "fileName": "XSS-Jhaddix.txt",
+                    "folder": "Payload/xss",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Fuzzing/XSS/human-friendly/XSS-RSNAKE.txt", 
+                    "fileName": "XSS-RSNAKE.txt",
+                    "folder": "Payload/xss",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Fuzzing/XSS/Polyglots/XSS-Polyglots.txt", 
+                    "fileName": "XSS-Polyglots.txt",
+                    "folder": "Payload/xss",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Fuzzing/XSS/human-friendly/xss-without-parentheses-semi-colons-portswigger.txt", 
+                    "fileName": "xss-without-parentheses-semi-colons.txt",
+                    "folder": "Payload/xss",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                
+                {
+                    "url": "https://raw.githubusercontent.com/HacktivistRO/Bug-Bounty-Wordlists/refs/heads/master/Wordlists/xxe-payloads-for-fuzzing.txt", 
+                    "fileName": "xxe-payloads.txt",
+                    "folder": "Payload",
+                    "provider": "HacktivistRO/Bug-Bounty-Wordlists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/fuzzdb-project/fuzzdb/refs/heads/master/attack/server-side-include/server-side-includes-generic.txt", 
+                    "fileName": "SSI-Injection.txt",
+                    "folder": "Payload",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/six2dez/OneListForAll/refs/heads/main/Payloads/ssti.txt", 
+                    "fileName": "ssti.txt",
+                    "folder": "Payload",
+                    "provider": "OneListForAll",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Fuzzing/command-injection-commix.txt", 
+                    "fileName": "command-injection-commix.txt",
+                    "folder": "Payload/command-injection",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/fuzzdb-project/fuzzdb/refs/heads/master/attack/os-cmd-execution/command-execution-unix.txt", 
+                    "fileName": "command-inject-unix.txt",
+                    "folder": "Payload/command-injection",
+                    "provider": "fuzzdb",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/fuzzdb-project/fuzzdb/refs/heads/master/attack/os-cmd-execution/OSCommandInject.Windows.txt", 
+                    "fileName": "command-inject-Windows.txt",
+                    "folder": "Payload/command-injection",
+                    "provider": "fuzzdb",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/fuzzdb-project/fuzzdb/refs/heads/master/attack/os-cmd-execution/shell-delimiters.txt", 
+                    "fileName": "shell-delimiters.txt",
+                    "folder": "Payload/command-injection",
+                    "provider": "fuzzdb",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/fuzzdb-project/fuzzdb/refs/heads/master/attack/os-cmd-execution/shell-operators.txt", 
+                    "fileName": "shell-operators.txt",
+                    "folder": "Payload/command-injection",
+                    "provider": "fuzzdb",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/HacktivistRO/Bug-Bounty-Wordlists/refs/heads/master/Wordlists/localhost-encoded-for-fuzzing.txt", 
+                    "fileName": "localhost-encoded.txt",
+                    "folder": "Payload/ssrf",
+                    "provider": "HacktivistRO/Bug-Bounty-Wordlists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/six2dez/OneListForAll/refs/heads/main/dict/schemes_long.txt", 
+                    "fileName": "schemes.txt",
+                    "folder": "Payload/ssrf",
+                    "provider": "OneListForAll",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/fuzzdb-project/fuzzdb/refs/heads/master/attack/authentication/php_magic_hashes.fuzz.txt", 
+                    "fileName": "php-magic-hashes-Tjugling.txt",
+                    "folder": "Payload",
+                    "provider": "fuzzdb",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/fuzzdb-project/fuzzdb/refs/heads/master/attack/format-strings/format-strings.txt", 
+                    "fileName": "format-strings.txt",
+                    "folder": "Payload",
+                    "provider": "fuzzdb",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/fuzzdb-project/fuzzdb/refs/heads/master/attack/ldap/ldap-injection.txt", 
+                    "fileName": "ldap-injection.txt",
+                    "folder": "Payload",
+                    "provider": "fuzzdb",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/fuzzdb-project/fuzzdb/refs/heads/master/attack/xpath/xpath-injection.txt", 
+                    "fileName": "xpath-injection.txt",
+                    "folder": "Payload",
+                    "provider": "fuzzdb",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/0xPugal/fuzz4bounty/refs/heads/master/fuzzing/crlf.txt", 
+                    "fileName": "crlf.txt",
+                    "folder": "Payload",
+                    "provider": "fuzz4bounty",
+                    "type":"static"
+                }
+            ]
+        },
+
+        {
+            "webshell" : [
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Web-Shells/FuzzDB/cmd-simple.php", 
+                    "fileName": "simple.php",
+                    "folder": "Webshell/php",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/fuzzdb-project/fuzzdb/refs/heads/master/web-backdoors/php/tiny.php", 
+                    "fileName": "tiny.php",
+                    "folder": "Webshell/php",
+                    "provider": "fuzzdb",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Web-Shells/laudanum-1.0/php/dns.php", 
+                    "fileName": "dns.php",
+                    "folder": "Webshell/php",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Web-Shells/FuzzDB/up.php", 
+                    "fileName": "upload.php",
+                    "folder": "Webshell/php",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Web-Shells/laudanum-1.0/php/file.php", 
+                    "fileName": "file-upload.php",
+                    "folder": "Webshell/php",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Web-Shells/laudanum-1.0/php/php-reverse-shell.php", 
+                    "fileName": "php-reverse-shell.php",
+                    "folder": "Webshell/php",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Web-Shells/PHP/obfuscated-phpshell.php", 
+                    "fileName": "obfuscated.php",
+                    "folder": "Webshell/php",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Web-Shells/PHP/another-obfuscated-phpshell.php", 
+                    "fileName": "obfuscated-shell-adv.php",
+                    "folder": "Webshell/php",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Web-Shells/WordPress/bypass-login.php", 
+                    "fileName": "bypass-login.php",
+                    "folder": "Webshell/wordpress",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Web-Shells/WordPress/plugin-shell.php", 
+                    "fileName": "plugin-shell.php",
+                    "folder": "Webshell/wordpress",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Web-Shells/laudanum-1.0/wordpress/templates/dns.php", 
+                    "fileName": "dns.php",
+                    "folder": "Webshell/wordpress",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Web-Shells/laudanum-1.0/wordpress/templates/file.php", 
+                    "fileName": "file-upload.php",
+                    "folder": "Webshell/wordpress",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Web-Shells/laudanum-1.0/wordpress/templates/php-reverse-shell.php", 
+                    "fileName": "php-reverse-shell.php",
+                    "folder": "Webshell/wordpress",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Web-Shells/JSP/simple-shell.jsp", 
+                    "fileName": "simple-shell.jsp",
+                    "folder": "Webshell/jsp-java",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Web-Shells/laudanum-1.0/jsp/warfiles/cmd.jsp", 
+                    "fileName": "cmd.jsp",
+                    "folder": "Webshell/jsp-java",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Web-Shells/FuzzDB/reverse.jsp", 
+                    "fileName": "reverse.jsp",
+                    "folder": "Webshell/jsp-java",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/fuzzdb-project/fuzzdb/refs/heads/master/web-backdoors/jsp/win32/cmd_win32.jsp", 
+                    "fileName": "cmd_win32.jsp",
+                    "folder": "Webshell/jsp-java",
+                    "provider": "fuzzdb",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/fuzzdb-project/fuzzdb/refs/heads/master/web-backdoors/jsp/CmdServlet.java", 
+                    "fileName": "CmdServlet.java",
+                    "folder": "Webshell/jsp-java",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Web-Shells/laudanum-1.0/asp/dns.asp", 
+                    "fileName": "dns.asp",
+                    "folder": "Webshell/asp",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Web-Shells/laudanum-1.0/asp/file.asp", 
+                    "fileName": "file-upload.asp",
+                    "folder": "Webshell/asp",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Web-Shells/laudanum-1.0/asp/proxy.asp", 
+                    "fileName": "proxy.asp",
+                    "folder": "Webshell/asp",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Web-Shells/laudanum-1.0/aspx/shell.aspx", 
+                    "fileName": "shell.asp",
+                    "folder": "Webshell/asp",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/fuzzdb-project/fuzzdb/refs/heads/master/web-backdoors/asp/cmd.aspx", 
+                    "fileName": "cmd.aspx",
+                    "folder": "Webshell/aspx",
+                    "provider": "fuzzdb",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Web-Shells/laudanum-1.0/aspx/shell.aspx", 
+                    "fileName": "shell.aspx",
+                    "folder": "Webshell/aspx",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://github.com/danielmiessler/SecLists/raw/refs/heads/master/Web-Shells/FuzzDB/nc.exe", 
+                    "fileName": "nc.exe",
+                    "folder": "Webshell",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/fuzzdb-project/fuzzdb/refs/heads/master/web-backdoors/c/cmd.c", 
+                    "fileName": "cmd.c",
+                    "folder": "Webshell",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/fuzzdb-project/fuzzdb/refs/heads/master/web-backdoors/pl-cgi/cmd.pl", 
+                    "fileName": "cmd.pl",
+                    "folder": "Webshell",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Web-Shells/backdoor_list.txt", 
+                    "fileName": "webshells.txt",
+                    "folder": "Webshell",
+                    "provider": "SecLists",
+                    "type":"static"
+                },
+                {
+                    "url": "https://raw.githubusercontent.com/six2dez/OneListForAll/refs/heads/main/dict/backdoors.txt", 
+                    "fileName": "backdoors.txt",
+                    "folder": "Webshell",
+                    "provider": "SecLists",
+                    "type":"static"
+                }
+            ]
+        }
+    ]
+}
+
+class SingleMetavarFormatter(argparse.HelpFormatter):
+
+    def _format_action_invocation(self, action):
+
+        if not action.option_strings:
+            metavar, = self._metavar_formatter(action, action.dest)(1)
+            return metavar.upper()
+        else:
+            parts = []
+            parts.extend(action.option_strings)
+            if action.nargs != 0:
+                metavar = self._metavar_formatter(action, action.dest)(1)
+            return ' '.join(parts)
+
+class Colors:
+    RED = '\033[91m'
+    GREEN = '\033[92m'
+    YELLOW = '\033[93m'
+    CYAN = '\033[96m'
+    RESET = '\033[0m'
+    BOLD = '\033[1m'
+
+banner =r"""
+     _     _            _                                                 _ _  _            
+    (_)   (_)          | |     _                                         | | |(_)       _   
+     _______ _____  ___| |__ _| |_ _____  ____ _____ _ _ _  ___   ____ __| | | _  ___ _| |_ 
+    |  ___  (____ |/___)  _ (_   _|____ |/ _  (_____) | | |/ _ \ / ___) _  | || |/___|_   _)
+    | |   | / ___ |___ | | | || |_/ ___ ( (_| |     | | | | |_| | |  ( (_| | || |___ | | |_ 
+    |_|   |_\_____(___/|_| |_| \__)_____|\___ |      \___/ \___/|_|   \____|\_)_(___/   \__)
+                                        (_____|                                             
+                                                                Hashtag-Wordlist
+                                                        https://github.com/Hashtag-AMIN
+"""
+
+wordlist_flags = [
+    
+        "subdomain",
+        "directory",
+        "api",
+        "file",
+        "word",
+        "parameter",
+        "header",
+        "number",
+        "username",
+        "password",
+        "technology",
+        "payload",
+        "webshell"
+    ]
+
+print_lock = threading.Lock()
+
+chars = [ "|", "/", "\\", "-"]
+
+def strip_date(filename):
+    return re.sub(r'_\d{4}_\d{2}_\d{2}', '', filename)
+
+def get_download_object(wordlist_mian_types, filter_object, download_type):
+    
+    download_wordlist_objs = []
+    
+    if download_type in ["input", "all"]:
+        for wordlist_mian_type in wordlist_mian_types["wordlist"]:
+            for wordlist_objs in wordlist_mian_type:
+                for wordlist_obj in wordlist_mian_type[wordlist_objs]:
+                    download_wordlist_objs.append(wordlist_obj)
+                    
+    if download_type == "custom":
+        for wordlist_mian_type in wordlist_mian_types["wordlist"]:
+            for wordlist_objs in wordlist_mian_type:
+                if wordlist_objs in filter_object:
+                    for wordlist_obj in wordlist_mian_type[wordlist_objs]:
+                        download_wordlist_objs.append(wordlist_obj)            
+    
+    return download_wordlist_objs
+
+def get_assetnote_link():
+    url = "https://wordlists-cdn.assetnote.io/data/automated.json"
+    response = requests.get(url)
+    if response.status_code == 200:
+        data = response.json()
+        
+        url_pattern = r"<a\s+href='(.*?)'>"
+        parsed_data = []
+        for entry in data["data"]:
+            parsed_entry = {
+                "Filename": entry.get("Filename"),
+                "Download": re.search(url_pattern, entry.get("Download")).group(1)
+            }
+            parsed_data.append(parsed_entry)
+            
+        return parsed_data
+    else:
+        print(f"{Colors.RED}[!] Failed to fetch data from AssetNote - status code: {Colors.YELLOW}{response.status_code}{Colors.RESET}")
+        return []
+
+def update_dynamic_obj(wordlist_obj_for_download, assetnote_links):
+
+    assetnote_map = {}
+    for item in assetnote_links:
+        base_name = strip_date(item["Filename"])
+        assetnote_map[base_name] = item["Download"]
+
+    for wordlist_obj in wordlist_obj_for_download:
+        if wordlist_obj["type"].lower() == "dynamic" and wordlist_obj["provider"].lower() == "assetnote":
+            obj_base_name = strip_date(wordlist_obj["fileName"])
+            if obj_base_name in assetnote_map:
+                wordlist_obj["fileName"] = assetnote_map[obj_base_name].split("/")[-1]
+                wordlist_obj["url"] = assetnote_map[obj_base_name]
+
+    return wordlist_obj_for_download
+
+def download_file(url, filename, folder, dest_path, retry, timeout, retry_delay, verbose, silent):
+    
+    attempt = 0
+    while attempt < retry:
+        try:
+            with requests.get(url, stream=True, timeout=timeout, allow_redirects=True, verify=False) as req:
+                if req.status_code != 200:
+                    if not silent:
+                        print(f"\r{Colors.RED}{Colors.BOLD}[!] Download failed with status code: {Colors.YELLOW}[{req.status_code}] [{url}]{Colors.RESET}")
+                    return False
+
+                downloaded_size = 0
+                with open(dest_path, 'wb') as f:
+                    for chunk in req.iter_content(chunk_size=1024 * 1024):
+                        if chunk:
+                            f.write(chunk)
+                            downloaded_size += len(chunk)
+                            print(f"\r{Colors.BOLD}[+][{random.choice(chars)}] Downloading: {downloaded_size / 1024:.2f} KB of {filename}{Colors.RESET}", end='')
+                    print()
+                if not silent:
+                    print(f"\r{Colors.CYAN}[+] Download {filename} completed with {downloaded_size} size in {folder}/{Colors.RESET}", )
+                
+                return True
+
+        except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
+            attempt += 1
+            if verbose:
+                print(f"\r\nAttempt {attempt} failed: {e}. Retrying in {retry_delay * attempt} seconds...", flush=True)
+            time.sleep(retry_delay * attempt)
+
+    print(f"\r{Colors.RED}Download failed after {attempt} attempts.{Colors.RESET}")
+    return False
+
+def valid_url(url):
+    parsed = urlparse(url)
+    return all([parsed.scheme in ('http', 'https'), parsed.netloc])
+
+def main():
+
+    parser = argparse.ArgumentParser(formatter_class=SingleMetavarFormatter)
+    parser.add_argument('-S', '--subdomain', help='Download subdomin wordlists',  action='store_true')
+    parser.add_argument('-D', '--directory', help='Download directory wordlists',  action='store_true')
+    parser.add_argument('-A', '--api', help='Download api wordlists',  action='store_true')
+    parser.add_argument('-F', '--file', help='Download file wordlists',  action='store_true')
+    parser.add_argument('-W', '--word', help='Download word wordlists',  action='store_true')
+    parser.add_argument('-P', '--parameter', help='Download parameter wordlists',  action='store_true')
+    parser.add_argument('-H', '--header', help='Download header wordlists',  action='store_true')
+    parser.add_argument('-N', '--number', help='Download number wordlists',  action='store_true')
+    parser.add_argument('-U', '--username', help='Download username wordlists',  action='store_true')
+    parser.add_argument('-Ps', '--password', help='Download number wordlists',  action='store_true')
+    parser.add_argument('-T', '--technology', help='Download technology wordlists',  action='store_true')
+    parser.add_argument('-Py', '--payload', help='Download payload wordlists',  action='store_true')
+    parser.add_argument('-Ws', '--webshell', help='Download webshell files',  action='store_true')
+    parser.add_argument('-Dy', '--dynamic', help='Download/Update wordlists with dynamic tag',  action='store_true')
+    parser.add_argument('-a', '--all', help='Download all wordlists',  action='store_true')
+    parser.add_argument('-i', '--input', help='Input Json file contains objects of wordlist for download', type=pathlib.Path)
+    parser.add_argument('-o', '--output', help='Output directory name for download wordlists [default = "./"]', default=None, type=str)
+    parser.add_argument('-t', '--thread', help='Thread for download files [default = 4]', default=4, type=int)
+    parser.add_argument('-s', '--silent', help='Silent mode',  action='store_true')
+    parser.add_argument('-v', '--verbose', help='Verbose mode',  action='store_true')
+    parser.add_argument('-r', '--retry', help='Retry to download wordlist [default = 3]', default=3, type=int)
+    parser.add_argument('-to', '--timeout', help='Http Requet timeout [default = 5s]', default=5, type=int)
+    parser.add_argument('-rd', '--retry-delay', help='Delay after each retry to downlaod [default = 2s]', default=2, type=int)
+    
+    args = parser.parse_args()
+    subdomain = args.subdomain
+    directory = args.directory
+    api = args.api
+    file = args.file
+    word = args.word
+    parameter = args.parameter
+    header = args.header
+    number = args.number
+    username = args.username
+    password = args.password
+    technology = args.technology
+    payload = args.payload
+    webshell= args.webshell
+    dynamic = args.dynamic
+    all_w = args.all
+    input_json = args.input
+    output = args.output
+    thread = args.thread
+    silent = args.silent
+    verbose = args.verbose
+    retry = args.retry
+    timeout = args.timeout
+    retry_delay = args.retry_delay
+    
+    if len([arg for arg in sys.argv if arg in ['-a', '-all', '-i', '--input']]) > 1:
+        parser.error(f"{Colors.RED}[-] Argument -a/--all|-i/--input: not allowed with more than one use!{Colors.RESET}")
+    
+    if sum(bool(arg) for arg in [all_w, input_json, any([subdomain, directory, api, file, word, parameter, header, number, username, password, technology, webshell, payload])]) != 1:
+        parser.error(f"{Colors.RED}[-] You must provide exactly one of -a/--all, -i/--input or at least one of wordlist flag!{Colors.RESET}")
+    
+    
+    if input_json:
+        if not os.path.exists(input_json):
+            parser.error(f"{Colors.RED}[-] The file {input_json} value of -i/--input flag does not exist!{Colors.RESET}")
+        try:
+            with open(input_json, 'r', encoding='utf-8') as file:
+                json_loaded = json.load(file)
+                wordlist_for_download = get_download_object(json_loaded, wordlist_flags, "input")
+                
+        except (json.JSONDecodeError, UnicodeDecodeError) as e:
+            print(f"{Colors.RED}[!] Invalid JSON file: {e}{Colors.RESET}")
+            sys.exit(1)
+
+    elif all_w:
+        wordlist_for_download = get_download_object(wordlist_objects, wordlist_flags, "all")
+    
+    elif any([subdomain, directory, api, file, word, parameter, header, number, username, password, technology, payload, webshell]):
+        selected_wordlist = [arg for arg in wordlist_flags if getattr(args, arg)]
+        wordlist_for_download = get_download_object(wordlist_objects, selected_wordlist, "custom")
+        
+    if dynamic:
+        if verbose:
+            print(f"{Colors.YELLOW}[+] Send Request to Assetnote for get update Links...{Colors.RESET}")
+        assetnote_links = get_assetnote_link()
+        wordlist_for_download = update_dynamic_obj(wordlist_for_download, assetnote_links)
+
+
+    main_folder = os.path.join(output) if output else os.path.abspath(".")
+    if not os.path.exists(main_folder):
+        if verbose:
+            print(f"{Colors.GREEN}[+] Create main directory: {main_folder} {Colors.RESET}")
+        os.makedirs(main_folder, exist_ok=True)
+
+    def make_wordlist_for_download(wordlist_obj):
+        
+        if all(wordlist_obj.get(key, False) for key in ( key1 for key1 in wordlist_obj.keys())):
+            
+            if not valid_url(wordlist_obj.get("url")):
+                with print_lock:
+                    print(f"{Colors.RED}{Colors.BOLD}[!]Not valid url! [{wordlist_obj.get("url")}]{Colors.RESET}")
+                    if verbose:
+                        print(f"{Colors.RED}{Colors.BOLD}[!] Check url of this object:\n{Colors.RESET}")
+                        for key, value in wordlist_obj.items():
+                            print(f"\t{Colors.YELLOW}{key} : {value}{Colors.RESET}")
+                        print()
+                return False
+            
+            folder = os.path.join(main_folder, wordlist_obj.get("folder"))
+            if not os.path.exists(folder):
+                os.makedirs(folder, exist_ok=True)
+                if verbose:
+                    print(f"\r{Colors.GREEN}[+] Create directory: {folder} {Colors.RESET}")
+            
+            download_file(wordlist_obj.get("url"), wordlist_obj.get("fileName"), wordlist_obj.get("folder"), os.path.join(folder, wordlist_obj.get("fileName")), retry, timeout, retry_delay, verbose, silent)
+            
+        else:
+            with print_lock:
+                print(f"\r{Colors.RED}{Colors.BOLD}[!] Missing something in object: {wordlist_obj.get("fileName", " No fileNmae! ")}{Colors.RESET}")
+                if verbose:
+                    print(f"\n\t{Colors.RED}==============={Colors.RESET}")
+                    for key, value in wordlist_obj.items():
+                        print(f"\t{Colors.GREEN}{key}{Colors.RESET}" if key else f"{Colors.RED}\t[Check!]{Colors.RESET}", f"{Colors.GREEN}{value}{Colors.RESET}" if value else f"{Colors.RED}[Check!]{Colors.RESET}", sep=" : ")
+                    print(f"\t{Colors.RED}==============={Colors.RESET}")
+                
+    try:            
+        with ThreadPoolExecutor(max_workers=thread) as executor:
+            futures = [executor.submit(make_wordlist_for_download, wordlist_obj) for wordlist_obj in wordlist_for_download]
+            for future in as_completed(futures):
+                try:
+                    future.result()
+                except Exception as e:
+                    if not silent:
+                        print(f"{Colors.RED}\n[!] Exception in thread: {e}{Colors.RESET}")
+                    
+    except KeyboardInterrupt:
+        print(f"\n{Colors.RED}[!] KeyboardInterrupt detected. Shutting down2...{Colors.RESET}")
+        executor.shutdown(wait=False, cancel_futures=True)
+        sys.exit(1)
+        
+    except Exception as e:
+        if verbose:
+            print(f"\n{Colors.RED}[!] Error in running ...\n {e}{Colors.RESET}")
+
+if __name__ == "__main__":
+    
+    if not bool([arg for arg in sys.argv if arg in ['-s', '--silent']]):
+        print(banner)
+        
+    main()
