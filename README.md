@@ -6,7 +6,7 @@
 
 &nbsp;&nbsp;[![Python](https://img.shields.io/static/v1?label=&labelColor=lightblue&message=Python&color=blue&style=flat&logo=python&logoColor=black)](Python)&nbsp;&nbsp;[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-<img src="./src/hashtag-wordlist-logo.png" style="width:600px; height:400px">
+<img src="./static/hashtag-wordlist-logo.png" style="width:600px; height:400px">
 
 ##### This tool able to automate download selective type of wordlsit in popular providers
 
@@ -104,7 +104,7 @@ In help meno can see all type of wordlist for download, aslo can customize type,
 
 #### able to use input file that contain object of wordlist:
 ```bash
-./hashtag-wordlist -i ./src/wordlist-objects.json
+./hashtag-wordlist -i ./static/wordlist-objects.json
 ```
 
 #### if use dynamic flag, update links from [Assetnote](https://wordlists-cdn.assetnote.io/data/automated.json) for dynamic file (28th every month)
@@ -116,7 +116,7 @@ In help meno can see all type of wordlist for download, aslo can customize type,
 ./hashtag-wordlist -a -Dy
 ```
 ```bash
-./hashtag-wordlist -i ./src/wordlist-objects.json --dynamic
+./hashtag-wordlist -i ./static/wordlist-objects.json --dynamic
 ```
 
 #### You can control the thread and request parameters according to your speed and bandwidth:
@@ -126,7 +126,7 @@ In help meno can see all type of wordlist for download, aslo can customize type,
 ```
 
 ```bash
-./hashtag-wordlist -i ./src/wordlist-objects.json --timeout 3 --retry-delay 1 -t 15 -r 2
+./hashtag-wordlist -i ./static/wordlist-objects.json --timeout 3 --retry-delay 1 -t 15 -r 2
 ```
 default value of parameter:
 - Thread:      4
@@ -221,7 +221,7 @@ In wide and combin 2 last structure and create wordlsit file for download:
 }
 ```
 
-Sample file in [./src/](./src/) directory.
+Sample file in [./static/](./static/) directory.
 
 
 ### Contributing
