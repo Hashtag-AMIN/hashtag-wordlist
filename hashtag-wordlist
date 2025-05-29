@@ -2090,7 +2090,7 @@ def main():
             
             if not valid_url(wordlist_obj.get("url")):
                 with print_lock:
-                    print(f"{Colors.RED}{Colors.BOLD}[!]Not valid url! [{wordlist_obj.get("url")}]{Colors.RESET}")
+                    print(f"{Colors.RED}{Colors.BOLD}[!]Not valid url! [{wordlist_obj.get('url')}]{Colors.RESET}")
                     if verbose:
                         print(f"{Colors.RED}{Colors.BOLD}[!] Check url of this object:\n{Colors.RESET}")
                         for key, value in wordlist_obj.items():
@@ -2108,7 +2108,7 @@ def main():
             
         else:
             with print_lock:
-                print(f"\r{Colors.RED}{Colors.BOLD}[!] Missing something in object: {wordlist_obj.get("fileName", " No fileNmae! ")}{Colors.RESET}")
+                print(f"\r{Colors.RED}{Colors.BOLD}[!] Missing something in object: {wordlist_obj.get('fileName', ' No fileNmae! ')}{Colors.RESET}")
                 if verbose:
                     print(f"\n\t{Colors.RED}==============={Colors.RESET}")
                     for key, value in wordlist_obj.items():
